@@ -3,32 +3,59 @@ import { useState } from "react";
 export default function Calculator() {
   const [input, setInput] = useState("");
   const [result, setResult] = useState("");
+  const [lastResult, setLastResult] = useState(null); // simpan hasil terakhir
+  const [justCalculated, setJustCalculated] = useState(false); // flag setelah "="
 
   const handleClick = (value) => {
-    // kalau sebelumnya ada result, reset dulu
-    if (result) {
-      setInput(value);
+    if (justCalculated) {
+      // Jika baru saja menekan "=", mulai dari hasil terakhir
+      if (/[\+\-\*\/]/.test(value)) {
+        // kalau user klik operator → lanjut dari hasil terakhir
+        setInput(lastResult + value);
+      } else {
+        // kalau user klik angka → mulai input baru
+        setInput(value);
+      }
       setResult("");
+      setJustCalculated(false);
     } else {
       setInput(input + value);
     }
   };
 
   const calculate = () => {
-    if (!input || input.length === 1) {
-      // kalau kosong atau hanya 1 karakter → user nakal
+    let trimmed = input.trim();
+
+    try {
+      if (trimmed === "1+1") {
+        setInput(trimmed + " =");
+        setResult("chicka cantik 💖");
+        setLastResult("chicka cantik 💖");
+        setJustCalculated(true);
+      } else {
+        // eslint-disable-next-line no-eval
+        const evalResult = eval(trimmed);
+        if (isNaN(evalResult)) {
+          throw new Error("Invalid");
+        }
+        setInput(trimmed + " =");
+        setResult(evalResult);
+        setLastResult(evalResult);
+        setJustCalculated(true);
+      }
+    } catch {
+      setInput(trimmed + " =");
       setResult("Surya marah 😡");
-      setInput(input + " =");
-    } else {
-      // valid → tampilkan chicka cantik
-      setResult("chicka cantik 💖");
-      setInput(input + " =");
+      setLastResult(null);
+      setJustCalculated(true);
     }
   };
 
   const clear = () => {
     setInput("");
     setResult("");
+    setLastResult(null);
+    setJustCalculated(false);
   };
 
   return (
